@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prize Winners Portal</title>
+    <title>Prize Winners Portal (Firebase)</title>
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         /* CSS Reset and Global Styles */
         :root {
-            --gold-primary: #D4AF37; /* A rich, classic gold */
+            --gold-primary: #D4AF37;
             --gold-light: #FFD700;
             --blue-dark: #0a192f;
             --blue-light: #172a46;
             --white-primary: #ffffff;
-            --white-secondary: #e6f1ff;
-            --slate: #8892b0;
-            --red-error: #e57373;
+            --slate-light: #f8f9fa;
+            --slate-medium: #e9ecef;
+            --slate-dark: #8892b0;
+            --text-dark: #333;
+            --red-error: #dc3545;
+            --green-success: #28a745;
             --yellow-pending: #ffc107;
-            --green-success: #81c784;
+            --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -30,266 +34,221 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            color: var(--slate);
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-light) 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
             display: flex;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            transition: background 0.5s ease;
-            padding: 2rem 0; /* Allows scrolling and provides vertical spacing */
+            padding: 1rem;
         }
 
-        /* Page Container for Transitions */
         .page {
             width: 100%;
-            max-width: 450px;
-            padding: 20px;
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
         }
-        
+
         .page.hidden {
             opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-            position: absolute; /* Remove from flow when hidden */
-        }
-        
-        /* Shared Card Styling */
-        .card {
-            background-color: var(--white-primary);
-            border-radius: 20px;
-            padding: 2.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Glowing Border Effect */
-        .card::before {
-            content: '';
+            transform: scale(0.95);
             position: absolute;
-            top: -2px; left: -2px;
-            width: calc(100% + 4px);
-            height: calc(100% + 4px);
-            background: linear-gradient(45deg, var(--gold-primary), var(--gold-light), #fff, var(--gold-primary));
-            background-size: 400% 400%;
-            border-radius: 22px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-            animation: glowing 20s linear infinite;
+            pointer-events: none;
+        }
+
+        /* --- Login Page --- */
+        #login-page .login-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            background-color: var(--white-primary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+            border-top: 5px solid var(--gold-primary);
+        }
+
+        .login-container h1 {
+            color: var(--blue-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .login-container h1 .icon {
+            color: var(--gold-primary);
+            vertical-align: middle;
         }
         
-        .card:hover::before {
-            opacity: 0.5;
-        }
-
-        @keyframes glowing {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Login Page Styles */
-        .login-card .title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--blue-dark);
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .input-group {
+        .login-container .input-group {
             margin-bottom: 1.5rem;
-            position: relative;
+            text-align: left;
         }
 
-        .input-group label {
+        .login-container label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--slate);
             font-weight: 600;
         }
 
-        .input-group input {
+        .login-container input {
             width: 100%;
-            padding: 0.8rem 1rem;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            font-family: 'Poppins', sans-serif;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--slate-medium);
+            border-radius: 8px;
             font-size: 1rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
         }
-
-        .input-group input:focus {
+        
+        .login-container input:focus {
             outline: none;
             border-color: var(--gold-primary);
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
         }
 
-        #login-button {
+        .login-container button {
             width: 100%;
-            padding: 1rem;
+            padding: 0.85rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             background: linear-gradient(45deg, var(--gold-primary), var(--gold-light));
             color: var(--blue-dark);
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
         }
 
-        #login-button:hover {
+        .login-container button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
         }
 
-        #error-message {
+        #login-error {
             color: var(--red-error);
-            text-align: center;
             margin-top: 1rem;
-            height: 20px; /* Reserve space to prevent layout shift */
-            font-weight: 600;
+            min-height: 20px;
+            font-weight: 500;
         }
         
-        /* Dashboard Page Styles */
-        #dashboard-page {
-            max-width: 600px;
-        }
-
-        .logout-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #f1f1f1;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--slate);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .logout-button:hover {
-            background-color: var(--blue-light);
-            color: var(--white-primary);
+        /* --- Dashboard Page --- */
+        #dashboard-page .dashboard-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--white-primary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
         }
 
         .dashboard-header {
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-light) 100%);
+            color: var(--white-primary);
+            padding: 2rem;
             text-align: center;
-            margin-bottom: 2.5rem;
             position: relative;
         }
         
-        .dashboard-header .congrats-title {
+        .dashboard-header h1 {
             font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--blue-dark);
             animation: pulse 2s infinite;
-        }
-
-        /* Confetti/Glow Effect */
-        .dashboard-header::after {
-            content: '✨';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 4rem;
-            opacity: 0;
-            animation: confetti-glow 3s infinite ease-out;
-            z-index: -1;
+            position: relative;
+            z-index: 2;
         }
         
-        @keyframes confetti-glow {
-            0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
-        }
-
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
 
-        .dashboard-header .winner-name {
-            font-size: 1.2rem;
-            color: var(--slate);
+        #logout-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #logout-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .prize-details {
-            list-style: none;
+        .dashboard-content {
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
         .prize-item {
             display: flex;
             align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .prize-item:last-child {
-            border-bottom: none;
+            gap: 1.5rem;
+            padding: 1rem;
+            background-color: var(--slate-light);
+            border-radius: 12px;
         }
         
         .prize-item .icon {
-            font-size: 1.8rem;
-            margin-right: 1.5rem;
+            font-size: 2rem;
+            color: var(--gold-primary);
+            flex-shrink: 0;
             width: 40px;
             text-align: center;
         }
 
-        .prize-item .label {
+        .prize-item .details h3 {
+            font-size: 1rem;
+            color: var(--slate-dark);
+            margin-bottom: 0.25rem;
+        }
+        
+        .prize-item .details p {
+            font-size: 1.25rem;
             font-weight: 600;
             color: var(--blue-dark);
-            flex-grow: 1;
-        }
-
-        .prize-item .value {
-            font-weight: 400;
-            color: var(--slate);
-            text-align: right;
         }
         
         .status-badge {
-            background-color: var(--yellow-pending);
-            color: var(--blue-dark);
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
             font-weight: 600;
             font-size: 0.9rem;
         }
+        .status-badge.pending { background-color: #fff3cd; color: #856404; }
+        .status-badge.available { background-color: #d1ecf1; color: #0c5460; }
+        .status-badge.delivered { background-color: #d4edda; color: #155724; }
 
-        .agent-note {
+
+        .contact-note {
             text-align: center;
-            margin-top: 2rem;
-            font-style: italic;
-            color: var(--slate);
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--slate-medium);
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        /* --- Utility Classes --- */
+        .hidden {
+            display: none !important;
         }
         
-        .agent-note a {
-            color: var(--gold-primary);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .agent-note a:hover {
-            color: var(--gold-light);
-            text-decoration: underline;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -299,265 +258,249 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 9999;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid var(--gold-primary);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .modal-overlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .modal-content {
-            background: var(--white-primary);
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            position: relative;
-            transform: scale(1);
-            transition: transform 0.3s ease;
-        }
-
-        .modal-overlay.hidden .modal-content {
-            transform: scale(0.95);
-        }
-
-        .modal-content h2 {
-            color: var(--blue-dark);
-            margin-bottom: 1rem;
-        }
-
-        .modal-content p {
-            color: var(--slate);
-            line-height: 1.6;
-        }
-
-        .close-button {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 2rem;
-            color: #ccc;
-            cursor: pointer;
-            line-height: 1;
-            transition: color 0.3s;
-        }
-
-        .close-button:hover {
-            color: var(--blue-dark);
-        }
-
-        .modal-content a {
-            color: var(--gold-primary);
-            text-decoration: none;
-        }
-        
-        .modal-content a:hover {
-            color: var(--gold-light);
-            text-decoration: underline;
-        }
-
-        /* Responsive Design */
+        /* Responsive */
         @media (max-width: 600px) {
-            .card {
-                padding: 2rem;
+            body {
+                padding: 0.5rem;
             }
-            .dashboard-header .congrats-title {
+             .login-container, .dashboard-content {
+                padding: 1.5rem;
+            }
+            .dashboard-header h1 {
                 font-size: 2rem;
             }
             .prize-item {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: 1.2rem 0;
-            }
-            .prize-item .icon {
-                margin-bottom: 0.5rem;
-            }
-            .prize-item .value {
                 text-align: left;
-                margin-top: 0.2rem;
             }
         }
     </style>
 </head>
 <body>
+    <div id="loading" class="loading-overlay"><div class="loader"></div></div>
 
-    <!-- Login Page -->
+    <!-- ======== LOGIN PAGE ======== -->
     <div id="login-page" class="page">
-        <div class="card login-card">
-            <h1 class="title">🏆 Prize Winners Portal</h1>
+        <div class="login-container">
+            <h1><span class="icon">🏆</span> Prize Winners Portal</h1>
+            <p style="color: var(--slate-dark); margin-bottom: 2rem;">Log in to view your prize package.</p>
             <form id="login-form">
                 <div class="input-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
+                    <input type="text" id="username" required>
                 </div>
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" required>
                 </div>
-                <button type="submit" id="login-button">Log In</button>
-                <p id="error-message"></p>
+                <button type="submit">Secure Log In</button>
+                <p id="login-error"></p>
             </form>
         </div>
     </div>
 
-    <!-- Dashboard Page (Initially Hidden) -->
+    <!-- ======== DASHBOARD PAGE ======== -->
     <div id="dashboard-page" class="page hidden">
-        <div class="card dashboard-card">
-            <button class="logout-button" id="logout-button">Log Out</button>
-            <div class="dashboard-header">
-                <h1 class="congrats-title">Congratulations!</h1>
-                <p class="winner-name">Your prize package is confirmed and ready!</p>
-            </div>
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <button id="logout-button">Log Out</button>
+                <h1>Congratulations!</h1>
+                <p>Your official prize details are listed below.</p>
+            </header>
+            <main class="dashboard-content">
+                <div class="prize-item">
+                    <div class="icon">👤</div>
+                    <div class="details">
+                        <h3>WINNER NAME</h3>
+                        <p id="winner-name-display">Alex Morgan</p>
+                    </div>
+                </div>
+                <div class="prize-item">
+                    <div class="icon">💰</div>
+                    <div class="details">
+                        <h3>CHECK VALUE</h3>
+                        <p id="check-value-display">$6,500,000.00</p>
+                    </div>
+                </div>
+                <div class="prize-item">
+                    <div class="icon">🗓️</div>
+                    <div class="details">
+                        <h3>WEEKLY FUNDS</h3>
+                        <p id="weekly-funds-display">$7,000.00 / week</p>
+                    </div>
+                </div>
+                <div class="prize-item">
+                    <div class="icon">🚗</div>
+                    <div class="details">
+                        <h3>VEHICLE WON</h3>
+                        <p id="vehicle-won-display">2024 Mercedes</p>
+                    </div>
+                </div>
+                <div class="prize-item">
+                    <div class="icon">📦</div>
+                    <div class="details">
+                        <h3>DELIVERY STATUS</h3>
+                        <p><span id="delivery-status-display" class="status-badge pending">Pending</span></p>
+                    </div>
+                </div>
 
-            <ul class="prize-details">
-                <li class="prize-item">
-                    <span class="icon">💰</span>
-                    <span class="label">Check Value</span>
-                    <span class="value">$6,500,000.00</span>
-                </li>
-                <li class="prize-item">
-                    <span class="icon">💸</span>
-                    <span class="label">Weekly Funds</span>
-                    <span class="value">$7,000.00 / week</span>
-                </li>
-                <li class="prize-item">
-                    <span class="icon">🚗</span>
-                    <span class="label">Vehicle Won</span>
-                    <span class="value">2024 Mercedes</span>
-                </li>
-                <li class="prize-item">
-                    <span class="icon">📦</span>
-                    <span class="label">Delivery Status</span>
-                    <span class="value"><span class="status-badge">Pending</span></span>
-                </li>
-            </ul>
-
-            <p class="agent-note">
-                <a href="#" id="contact-agent-link">Contact agent to claim.</a>
-            </p>
+                <div class="contact-note">
+                    Contact your agent to claim your prize package.
+                </div>
+            </main>
         </div>
     </div>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // --- YOUR UNIQUE FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtcSHbjCnAHw3IUKkU8w2glBe5mKo2wts",
+            authDomain: "winners-18cf7.firebaseapp.com",
+            projectId: "winners-18cf7",
+            storageBucket: "winners-18cf7.appspot.com",
+            messagingSenderId: "241313463037",
+            appId: "1:241313463037:web:4953cc2a8b99ebaded9c94",
+            measurementId: "G-BTMJ8P648X"
+        };
+        const appId = 'prize-winners-app';
 
-    <!-- Contact Agent Modal -->
-    <div id="contact-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button id="close-modal-button" class="close-button">&times;</button>
-            <h2>Claiming Your Package</h2>
-            <p>Contact <strong><a href="tel:+17692240652">Mr. Goldberg</a></strong> at +1 (769) 224-0652 in regards to claiming your package numbers.</p>
-        </div>
-    </div>
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    <script>
-        // --- Element Selection ---
-        const loginPage = document.getElementById('login-page');
-        const dashboardPage = document.getElementById('dashboard-page');
-        const loginForm = document.getElementById('login-form');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const errorMessage = document.getElementById('error-message');
-        const logoutButton = document.getElementById('logout-button');
-        const contactModal = document.getElementById('contact-modal');
-        const contactAgentLink = document.getElementById('contact-agent-link');
-        const closeModalButton = document.getElementById('close-modal-button');
-
-        // --- Correct Credentials ---
-        const correctUsername = 'Prizewinners';
-        const correctPassword = 'JM256';
-
-        /**
-         * Function to switch between pages with a smooth transition.
-         * @param {HTMLElement} pageToHide - The page element to hide.
-         * @param {HTMLElement} pageToShow - The page element to show.
-         */
-        function switchPage(pageToHide, pageToShow) {
-            pageToHide.classList.add('hidden');
-            
-            // Wait for the fade-out animation to complete before changing display properties
-            setTimeout(() => {
-                pageToHide.style.display = 'none';
-                pageToShow.style.display = 'block';
-                
-                // Use a nested timeout to allow the display property to update before fading in
-                setTimeout(() => {
-                    pageToShow.classList.remove('hidden');
-                }, 20); // A small delay is enough
-
-            }, 500); // This duration should match the CSS transition duration
+        // --- Firebase Initialization ---
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            const auth = getAuth(app);
+            setLogLevel('debug');
+            await signInAnonymously(auth);
+            console.log("Firebase initialized and user signed in anonymously.");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            alert("Could not connect to the system. Please try again later.");
         }
 
-        // --- Event Listener for Login Form Submission ---
-        loginForm.addEventListener('submit', function(event) {
-            // Prevent the default form submission behavior
-            event.preventDefault();
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENTS ---
+            const loadingOverlay = document.getElementById('loading');
+            const loginPage = document.getElementById('login-page');
+            const dashboardPage = document.getElementById('dashboard-page');
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            const logoutButton = document.getElementById('logout-button');
 
-            const enteredUsername = usernameInput.value;
-            const enteredPassword = passwordInput.value;
+            // Dashboard display elements
+            const winnerNameDisplay = document.getElementById('winner-name-display');
+            const checkValueDisplay = document.getElementById('check-value-display');
+            const weeklyFundsDisplay = document.getElementById('weekly-funds-display');
+            const vehicleWonDisplay = document.getElementById('vehicle-won-display');
+            const deliveryStatusDisplay = document.getElementById('delivery-status-display');
 
-            // Check if credentials are correct
-            if (enteredUsername === correctUsername && enteredPassword === correctPassword) {
-                // Clear any previous error messages
-                errorMessage.textContent = '';
-                // Switch to the dashboard page
-                switchPage(loginPage, dashboardPage);
-            } else {
-                // Display an error message
-                errorMessage.textContent = 'Invalid username or password.';
-                // Add a small shake animation for effect (optional)
-                loginPage.querySelector('.card').style.animation = 'shake 0.5s';
-                setTimeout(() => {
-                    loginPage.querySelector('.card').style.animation = '';
-                }, 500);
+            // --- FUNCTIONS ---
+            function showLoading(isLoading) {
+                loadingOverlay.classList.toggle('hidden', !isLoading);
             }
-        });
 
-        // --- Event Listener for Logout Button ---
-        logoutButton.addEventListener('click', function() {
-            // Switch back to the login page
-            switchPage(dashboardPage, loginPage);
-            
-            // Clear the input fields for the next session
-            usernameInput.value = '';
-            passwordInput.value = '';
-        });
-        
-        // --- Event Listeners for Contact Modal ---
-        contactAgentLink.addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent link from navigating
-            contactModal.classList.remove('hidden');
-        });
-
-        closeModalButton.addEventListener('click', function() {
-            contactModal.classList.add('hidden');
-        });
-
-        // Close modal when clicking on the overlay background
-        contactModal.addEventListener('click', function(event) {
-            // We check if the clicked element is the overlay itself, not a child
-            if (event.target === contactModal) {
-                contactModal.classList.add('hidden');
+            function switchPage(pageToShow) {
+                document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+                if (pageToShow) {
+                    pageToShow.classList.remove('hidden');
+                }
             }
-        });
 
+            function populateDashboard(winnerData) {
+                winnerNameDisplay.textContent = winnerData.name;
+                checkValueDisplay.textContent = winnerData.checkValue;
+                weeklyFundsDisplay.textContent = winnerData.weeklyFunds;
+                vehicleWonDisplay.textContent = winnerData.vehicle;
+                deliveryStatusDisplay.textContent = winnerData.status;
 
-        // Simple shake animation style injection (optional)
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
+                deliveryStatusDisplay.className = 'status-badge'; // Reset classes
+                if (winnerData.status) {
+                    deliveryStatusDisplay.classList.add(winnerData.status.toLowerCase());
+                }
             }
-        `;
-        document.head.appendChild(style);
 
+            async function handleLogin(e) {
+                e.preventDefault();
+                showLoading(true);
+                loginError.textContent = '';
+                
+                const username = document.getElementById('username').value.toLowerCase();
+                const password = document.getElementById('password').value;
+
+                if (!db) {
+                    loginError.textContent = "Error: Database not connected.";
+                    showLoading(false);
+                    return;
+                }
+
+                try {
+                    const winnersCollection = collection(db, `artifacts/${appId}/public/data/winners`);
+                    const q = query(winnersCollection, where("username", "==", username), where("password", "==", password));
+                    
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        loginError.textContent = "Invalid username or password.";
+                    } else {
+                        // Assuming one unique winner per username/password combo
+                        const winnerData = querySnapshot.docs[0].data();
+                        sessionStorage.setItem('loggedInWinner', JSON.stringify(winnerData));
+                        populateDashboard(winnerData);
+                        switchPage(dashboardPage);
+                    }
+                } catch (error) {
+                    console.error("Login error: ", error);
+                    loginError.textContent = "An error occurred. Please try again.";
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            function handleLogout() {
+                sessionStorage.removeItem('loggedInWinner');
+                switchPage(loginPage);
+                loginForm.reset();
+            }
+
+            // --- INITIALIZATION ---
+            function init() {
+                const loggedInWinner = sessionStorage.getItem('loggedInWinner');
+                if (loggedInWinner) {
+                    populateDashboard(JSON.parse(loggedInWinner));
+                    switchPage(dashboardPage);
+                } else {
+                    switchPage(loginPage);
+                }
+                
+                loginForm.addEventListener('submit', handleLogin);
+                logoutButton.addEventListener('click', handleLogout);
+
+                showLoading(false); // Hide loader after initial check
+            }
+
+            init();
+        });
     </script>
 </body>
 </html>
