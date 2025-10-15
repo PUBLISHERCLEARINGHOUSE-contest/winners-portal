@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prize Winners Portal</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Reset and Global Styles */
+        :root {
+            --gold-primary: #D4AF37; /* A rich, classic gold */
+            --gold-light: #FFD700;
+            --blue-dark: #0a192f;
+            --blue-light: #172a46;
+            --white-primary: #ffffff;
+            --white-secondary: #e6f1ff;
+            --slate: #8892b0;
+            --red-error: #e57373;
+            --yellow-pending: #ffc107;
+            --green-success: #81c784;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--slate);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* Prevents scrollbars during transitions */
+            transition: background 0.5s ease;
+        }
+
+        /* Page Container for Transitions */
+        .page {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        
+        .page.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            position: absolute; /* Remove from flow when hidden */
+        }
+        
+        /* Shared Card Styling */
+        .card {
+            background-color: var(--white-primary);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Glowing Border Effect */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px;
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            background: linear-gradient(45deg, var(--gold-primary), var(--gold-light), #fff, var(--gold-primary));
+            background-size: 400% 400%;
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            animation: glowing 20s linear infinite;
+        }
+        
+        .card:hover::before {
+            opacity: 0.5;
+        }
+
+        @keyframes glowing {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Login Page Styles */
+        .login-card .title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--blue-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--slate);
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+
+        #login-button {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, var(--gold-primary), var(--gold-light));
+            color: var(--blue-dark);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        #error-message {
+            color: var(--red-error);
+            text-align: center;
+            margin-top: 1rem;
+            height: 20px; /* Reserve space to prevent layout shift */
+            font-weight: 600;
+        }
+        
+        /* Dashboard Page Styles */
+        #dashboard-page {
+            max-width: 600px;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f1f1f1;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--slate);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--blue-light);
+            color: var(--white-primary);
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+        
+        .dashboard-header .congrats-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--blue-dark);
+            animation: pulse 2s infinite;
+        }
+
+        /* Confetti/Glow Effect */
+        .dashboard-header::after {
+            content: '✨';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            opacity: 0;
+            animation: confetti-glow 3s infinite ease-out;
+            z-index: -1;
+        }
+        
+        @keyframes confetti-glow {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .dashboard-header .winner-name {
+            font-size: 1.2rem;
+            color: var(--slate);
+        }
+
+        .prize-details {
+            list-style: none;
+        }
+
+        .prize-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .prize-item:last-child {
+            border-bottom: none;
+        }
+        
+        .prize-item .icon {
+            font-size: 1.8rem;
+            margin-right: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .prize-item .label {
+            font-weight: 600;
+            color: var(--blue-dark);
+            flex-grow: 1;
+        }
+
+        .prize-item .value {
+            font-weight: 400;
+            color: var(--slate);
+            text-align: right;
+        }
+        
+        .status-badge {
+            background-color: var(--yellow-pending);
+            color: var(--blue-dark);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .agent-note {
+            text-align: center;
+            margin-top: 2rem;
+            font-style: italic;
+            color: var(--slate);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .card {
+                padding: 2rem;
+            }
+            .dashboard-header .congrats-title {
+                font-size: 2rem;
+            }
+            .prize-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1.2rem 0;
+            }
+            .prize-item .icon {
+                margin-bottom: 0.5rem;
+            }
+            .prize-item .value {
+                text-align: left;
+                margin-top: 0.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Page -->
+    <div id="login-page" class="page">
+        <div class="card login-card">
+            <h1 class="title">🏆 Prize Winners Portal</h1>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" id="login-button">Log In</button>
+                <p id="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Page (Initially Hidden) -->
+    <div id="dashboard-page" class="page hidden">
+        <div class="card dashboard-card">
+            <button class="logout-button" id="logout-button">Log Out</button>
+            <div class="dashboard-header">
+                <h1 class="congrats-title">Congratulations!</h1>
+                <p class="winner-name">Alex Morgan</p>
+            </div>
+
+            <ul class="prize-details">
+                <li class="prize-item">
+                    <span class="icon">💰</span>
+                    <span class="label">Check Value</span>
+                    <span class="value">$6,500,000.00</span>
+                </li>
+                <li class="prize-item">
+                    <span class="icon">💸</span>
+                    <span class="label">Weekly Funds</span>
+                    <span class="value">$7,000.00 / week</span>
+                </li>
+                <li class="prize-item">
+                    <span class="icon">🚗</span>
+                    <span class="label">Vehicle Won</span>
+                    <span class="value">2024 Mercedes</span>
+                </li>
+                <li class="prize-item">
+                    <span class="icon">📦</span>
+                    <span class="label">Delivery Status</span>
+                    <span class="value"><span class="status-badge">Pending</span></span>
+                </li>
+            </ul>
+
+            <p class="agent-note">Contact agent to claim.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Element Selection ---
+        const loginPage = document.getElementById('login-page');
+        const dashboardPage = document.getElementById('dashboard-page');
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+        const logoutButton = document.getElementById('logout-button');
+
+        // --- Correct Credentials ---
+        const correctUsername = 'Prizewinners';
+        const correctPassword = 'JM256';
+
+        /**
+         * Function to switch between pages with a smooth transition.
+         * @param {HTMLElement} pageToHide - The page element to hide.
+         * @param {HTMLElement} pageToShow - The page element to show.
+         */
+        function switchPage(pageToHide, pageToShow) {
+            pageToHide.classList.add('hidden');
+            
+            // Wait for the fade-out animation to complete before changing display properties
+            setTimeout(() => {
+                pageToHide.style.display = 'none';
+                pageToShow.style.display = 'block';
+                
+                // Use a nested timeout to allow the display property to update before fading in
+                setTimeout(() => {
+                    pageToShow.classList.remove('hidden');
+                }, 20); // A small delay is enough
+
+            }, 500); // This duration should match the CSS transition duration
+        }
+
+        // --- Event Listener for Login Form Submission ---
+        loginForm.addEventListener('submit', function(event) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+
+            const enteredUsername = usernameInput.value;
+            const enteredPassword = passwordInput.value;
+
+            // Check if credentials are correct
+            if (enteredUsername === correctUsername && enteredPassword === correctPassword) {
+                // Clear any previous error messages
+                errorMessage.textContent = '';
+                // Switch to the dashboard page
+                switchPage(loginPage, dashboardPage);
+            } else {
+                // Display an error message
+                errorMessage.textContent = 'Invalid username or password.';
+                // Add a small shake animation for effect (optional)
+                loginPage.querySelector('.card').style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    loginPage.querySelector('.card').style.animation = '';
+                }, 500);
+            }
+        });
+
+        // --- Event Listener for Logout Button ---
+        logoutButton.addEventListener('click', function() {
+            // Switch back to the login page
+            switchPage(dashboardPage, loginPage);
+            
+            // Clear the input fields for the next session
+            usernameInput.value = '';
+            passwordInput.value = '';
+        });
+
+        // Simple shake animation style injection (optional)
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>
