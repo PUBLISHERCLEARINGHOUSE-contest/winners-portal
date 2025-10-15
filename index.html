@@ -276,6 +276,95 @@
             color: var(--slate);
         }
         
+        .agent-note a {
+            color: var(--gold-primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .agent-note a:hover {
+            color: var(--gold-light);
+            text-decoration: underline;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 25, 47, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .modal-content {
+            background: var(--white-primary);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.hidden .modal-content {
+            transform: scale(0.95);
+        }
+
+        .modal-content h2 {
+            color: var(--blue-dark);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            color: var(--slate);
+            line-height: 1.6;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #ccc;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+
+        .close-button:hover {
+            color: var(--blue-dark);
+        }
+
+        .modal-content a {
+            color: var(--gold-primary);
+            text-decoration: none;
+        }
+        
+        .modal-content a:hover {
+            color: var(--gold-light);
+            text-decoration: underline;
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .card {
@@ -326,7 +415,7 @@
             <button class="logout-button" id="logout-button">Log Out</button>
             <div class="dashboard-header">
                 <h1 class="congrats-title">Congratulations!</h1>
-                <p class="winner-name">Alex Morgan</p>
+                <p class="winner-name">Your prize package is confirmed and ready!</p>
             </div>
 
             <ul class="prize-details">
@@ -352,7 +441,18 @@
                 </li>
             </ul>
 
-            <p class="agent-note">Contact agent to claim.</p>
+            <p class="agent-note">
+                <a href="#" id="contact-agent-link">Contact agent to claim.</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Contact Agent Modal -->
+    <div id="contact-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-modal-button" class="close-button">&times;</button>
+            <h2>Claiming Your Package</h2>
+            <p>Contact <strong><a href="tel:+17692240652">Mr. Goldberg</a></strong> at +1 (769) 224-0652 in regards to claiming your package numbers.</p>
         </div>
     </div>
 
@@ -365,6 +465,9 @@
         const passwordInput = document.getElementById('password');
         const errorMessage = document.getElementById('error-message');
         const logoutButton = document.getElementById('logout-button');
+        const contactModal = document.getElementById('contact-modal');
+        const contactAgentLink = document.getElementById('contact-agent-link');
+        const closeModalButton = document.getElementById('close-modal-button');
 
         // --- Correct Credentials ---
         const correctUsername = 'Prizewinners';
@@ -425,6 +528,25 @@
             usernameInput.value = '';
             passwordInput.value = '';
         });
+        
+        // --- Event Listeners for Contact Modal ---
+        contactAgentLink.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent link from navigating
+            contactModal.classList.remove('hidden');
+        });
+
+        closeModalButton.addEventListener('click', function() {
+            contactModal.classList.add('hidden');
+        });
+
+        // Close modal when clicking on the overlay background
+        contactModal.addEventListener('click', function(event) {
+            // We check if the clicked element is the overlay itself, not a child
+            if (event.target === contactModal) {
+                contactModal.classList.add('hidden');
+            }
+        });
+
 
         // Simple shake animation style injection (optional)
         const style = document.createElement('style');
