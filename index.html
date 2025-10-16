@@ -243,6 +243,96 @@
             font-weight: 500;
         }
 
+        .contact-button {
+             display: block;
+             width: 100%;
+             max-width: 250px;
+             margin: 1rem auto 0 auto;
+             padding: 0.75rem;
+             border: none;
+             border-radius: 8px;
+             background-color: var(--blue-dark);
+             color: var(--white-primary);
+             font-size: 1rem;
+             font-weight: 600;
+             cursor: pointer;
+             transition: all 0.3s ease;
+        }
+
+        .contact-button:hover {
+            background-color: var(--blue-light);
+            transform: translateY(-2px);
+        }
+
+        /* --- Modal Styles --- */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--white-primary);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--slate-medium);
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .close-button {
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .close-button:hover { color: #333; }
+
+        .modal-body p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .phone-link {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: var(--green-success);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+        }
+        .phone-link:hover {
+            background-color: #218838;
+        }
+
         /* --- Utility Classes --- */
         .hidden {
             display: none !important;
@@ -374,10 +464,25 @@
                 <div class="contact-note">
                     Contact your agent to claim your prize package.
                 </div>
+                <button id="contact-agent-btn" class="contact-button">Contact Agent</button>
             </main>
         </div>
     </div>
     
+    <!-- ======== CONTACT MODAL ======== -->
+    <div id="contact-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agent Contact Info</h2>
+                <span id="close-modal-btn" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Click the number below to call your agent.</p>
+                <a href="tel:+17692240652" class="phone-link">+1 (769) 224-0652</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         // --- YOUR UNIQUE FIREBASE CONFIGURATION ---
@@ -409,6 +514,11 @@
         const weeklyFundsDisplay = document.getElementById('weekly-funds-display');
         const vehicleWonDisplay = document.getElementById('vehicle-won-display');
         const deliveryStatusDisplay = document.getElementById('delivery-status-display');
+        
+        // Modal elements
+        const contactModal = document.getElementById('contact-modal');
+        const contactAgentBtn = document.getElementById('contact-agent-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
 
         let db; // To hold the database instance
 
@@ -505,6 +615,20 @@
 
                 loginForm.addEventListener('submit', handleLogin);
                 logoutButton.addEventListener('click', handleLogout);
+
+                // Modal event listeners
+                contactAgentBtn.addEventListener('click', () => {
+                    contactModal.classList.remove('hidden');
+                });
+                closeModalBtn.addEventListener('click', () => {
+                    contactModal.classList.add('hidden');
+                });
+                contactModal.addEventListener('click', (event) => {
+                    if (event.target === contactModal) {
+                        contactModal.classList.add('hidden');
+                    }
+                });
+
 
             } catch (error) {
                 console.error("CRITICAL ERROR during initialization:", error);
