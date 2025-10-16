@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prize Winners Portal (Firebase)</title>
-    <!-- Google Fonts: Poppins -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        /* CSS Reset and Global Styles */
-        :root {
-            --gold-primary: #D4AF37;
-            --gold-light: #FFD700;
-            --blue-dark: #0a192f;
-            --blue-light: #172a46;
-            --white-primary: #ffffff;
-            --slate-light: #f8f9fa;
+f9fa;
             --slate-medium: #e9ecef;
             --slate-dark: #8892b0;
             --text-dark: #333;
@@ -296,7 +277,7 @@
     <div id="loading" class="loading-overlay"><div class="loader"></div></div>
 
     <!-- ======== LOGIN PAGE ======== -->
-    <div id="login-page" class="page">
+    <div id="login-page" class="page hidden">
         <div class="login-container">
             <h1><span class="icon">🏆</span> Prize Winners Portal</h1>
             <p style="color: var(--slate-dark); margin-bottom: 2rem;">Log in to view your prize package.</p>
@@ -385,21 +366,7 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // --- Firebase Initialization ---
-        let db;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            const auth = getAuth(app);
-            setLogLevel('debug');
-            await signInAnonymously(auth);
-            console.log("Firebase initialized and user signed in anonymously.");
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            alert("Could not connect to the system. Please try again later.");
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // --- DOM ELEMENTS ---
             const loadingOverlay = document.getElementById('loading');
             const loginPage = document.getElementById('login-page');
@@ -415,7 +382,33 @@
             const vehicleWonDisplay = document.getElementById('vehicle-won-display');
             const deliveryStatusDisplay = document.getElementById('delivery-status-display');
 
+            let db; // Database instance
+
             // --- FUNCTIONS ---
+            async function initializeFirebase() {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    const auth = getAuth(app);
+                    setLogLevel('debug');
+                    await signInAnonymously(auth);
+                    console.log("Firebase initialized and user signed in anonymously.");
+                    return getFirestore(app); // Return the db instance on success
+                } catch (error) {
+                    console.error("Firebase initialization failed:", error);
+                    // Provide specific, helpful error messages
+                    showLoading(false);
+                    if (error.code && error.code.includes('auth/')) {
+                         alert("Connection Error: Could not authenticate with the database.\n\nPLEASE MAKE SURE 'Anonymous' sign-in is ENABLED in your Firebase project's Authentication settings.");
+                    } else if (error.code === 'failed-precondition') {
+                         alert("Connection Error: Firestore has not been set up correctly in this project. Please create a Firestore database in your Firebase console.");
+                    }
+                    else {
+                         alert("Could not connect to the system. Please check your internet connection and Firebase project setup.");
+                    }
+                    return null; // Return null on failure
+                }
+            }
+
             function showLoading(isLoading) {
                 loadingOverlay.classList.toggle('hidden', !isLoading);
             }
@@ -463,7 +456,6 @@
                     if (querySnapshot.empty) {
                         loginError.textContent = "Invalid username or password.";
                     } else {
-                        // Assuming one unique winner per username/password combo
                         const winnerData = querySnapshot.docs[0].data();
                         sessionStorage.setItem('loggedInWinner', JSON.stringify(winnerData));
                         populateDashboard(winnerData);
@@ -483,8 +475,18 @@
                 loginForm.reset();
             }
 
-            // --- INITIALIZATION ---
-            function init() {
+            // --- APP INITIALIZATION ---
+            async function init() {
+                showLoading(true);
+                db = await initializeFirebase(); // Wait for firebase to connect
+
+                if (!db) {
+                    // If connection failed, db will be null. The error alert has already been shown.
+                    // We can hide the page content to prevent user interaction with a broken app.
+                    document.body.innerHTML = ''; // Clear the body
+                    return; 
+                }
+                
                 const loggedInWinner = sessionStorage.getItem('loggedInWinner');
                 if (loggedInWinner) {
                     populateDashboard(JSON.parse(loggedInWinner));
@@ -496,10 +498,10 @@
                 loginForm.addEventListener('submit', handleLogin);
                 logoutButton.addEventListener('click', handleLogout);
 
-                showLoading(false); // Hide loader after initial check
+                showLoading(false);
             }
 
-            init();
+            await init();
         });
     </script>
 </body>
