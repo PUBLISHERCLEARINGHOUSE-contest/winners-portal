@@ -1,4 +1,23 @@
-f9fa;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prize Winners Portal (Firebase)</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Reset and Global Styles */
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #FFD700;
+            --blue-dark: #0a192f;
+            --blue-light: #172a46;
+            --white-primary: #ffffff;
+            --slate-light: #f8f9fa;
             --slate-medium: #e9ecef;
             --slate-dark: #8892b0;
             --text-dark: #333;
@@ -240,6 +259,7 @@ f9fa;
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            flex-direction: column;
         }
         .loader {
             border: 8px solid #f3f3f3;
@@ -249,6 +269,13 @@ f9fa;
             height: 60px;
             animation: spin 1s linear infinite;
         }
+        #loading-text {
+            color: white;
+            margin-top: 1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -274,7 +301,10 @@ f9fa;
     </style>
 </head>
 <body>
-    <div id="loading" class="loading-overlay"><div class="loader"></div></div>
+    <div id="loading" class="loading-overlay">
+        <div class="loader"></div>
+        <p id="loading-text">Connecting to Server...</p>
+    </div>
 
     <!-- ======== LOGIN PAGE ======== -->
     <div id="login-page" class="page hidden">
@@ -364,129 +394,107 @@ f9fa;
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // --- DOM ELEMENTS ---
-            const loadingOverlay = document.getElementById('loading');
-            const loginPage = document.getElementById('login-page');
-            const dashboardPage = document.getElementById('dashboard-page');
-            const loginForm = document.getElementById('login-form');
-            const loginError = document.getElementById('login-error');
-            const logoutButton = document.getElementById('logout-button');
+        // --- DOM Elements ---
+        const loadingOverlay = document.getElementById('loading');
+        const loadingText = document.getElementById('loading-text');
+        const loginPage = document.getElementById('login-page');
+        const dashboardPage = document.getElementById('dashboard-page');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const logoutButton = document.getElementById('logout-button');
+        const winnerNameDisplay = document.getElementById('winner-name-display');
+        const checkValueDisplay = document.getElementById('check-value-display');
+        const weeklyFundsDisplay = document.getElementById('weekly-funds-display');
+        const vehicleWonDisplay = document.getElementById('vehicle-won-display');
+        const deliveryStatusDisplay = document.getElementById('delivery-status-display');
 
-            // Dashboard display elements
-            const winnerNameDisplay = document.getElementById('winner-name-display');
-            const checkValueDisplay = document.getElementById('check-value-display');
-            const weeklyFundsDisplay = document.getElementById('weekly-funds-display');
-            const vehicleWonDisplay = document.getElementById('vehicle-won-display');
-            const deliveryStatusDisplay = document.getElementById('delivery-status-display');
+        let db; // To hold the database instance
 
-            let db; // Database instance
+        // --- Core Functions ---
+        function showLoading(isLoading, text = "Loading...") {
+            loadingOverlay.classList.toggle('hidden', !isLoading);
+            loadingText.textContent = text;
+        }
 
-            // --- FUNCTIONS ---
-            async function initializeFirebase() {
-                try {
-                    const app = initializeApp(firebaseConfig);
-                    const auth = getAuth(app);
-                    setLogLevel('debug');
-                    await signInAnonymously(auth);
-                    console.log("Firebase initialized and user signed in anonymously.");
-                    return getFirestore(app); // Return the db instance on success
-                } catch (error) {
-                    console.error("Firebase initialization failed:", error);
-                    // Provide specific, helpful error messages
-                    showLoading(false);
-                    if (error.code && error.code.includes('auth/')) {
-                         alert("Connection Error: Could not authenticate with the database.\n\nPLEASE MAKE SURE 'Anonymous' sign-in is ENABLED in your Firebase project's Authentication settings.");
-                    } else if (error.code === 'failed-precondition') {
-                         alert("Connection Error: Firestore has not been set up correctly in this project. Please create a Firestore database in your Firebase console.");
-                    }
-                    else {
-                         alert("Could not connect to the system. Please check your internet connection and Firebase project setup.");
-                    }
-                    return null; // Return null on failure
+        function switchPage(pageToShow) {
+            document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+            if (pageToShow) {
+                pageToShow.classList.remove('hidden');
+            }
+        }
+
+        function populateDashboard(winnerData) {
+            winnerNameDisplay.textContent = winnerData.name;
+            checkValueDisplay.textContent = winnerData.checkValue;
+            weeklyFundsDisplay.textContent = winnerData.weeklyFunds;
+            vehicleWonDisplay.textContent = winnerData.vehicle;
+            deliveryStatusDisplay.textContent = winnerData.status;
+
+            deliveryStatusDisplay.className = 'status-badge';
+            if (winnerData.status) {
+                deliveryStatusDisplay.classList.add(winnerData.status.toLowerCase());
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            showLoading(true, "Verifying credentials...");
+            loginError.textContent = '';
+            
+            const username = document.getElementById('username').value.toLowerCase().trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const winnersCollection = collection(db, `artifacts/${appId}/public/data/winners`);
+                const q = query(winnersCollection, where("username", "==", username), where("password", "==", password));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    loginError.textContent = "Invalid username or password.";
+                } else {
+                    const winnerData = querySnapshot.docs[0].data();
+                    sessionStorage.setItem('loggedInWinner', JSON.stringify(winnerData));
+                    populateDashboard(winnerData);
+                    switchPage(dashboardPage);
                 }
+            } catch (error) {
+                console.error("Login error: ", error);
+                loginError.textContent = "An error occurred during login. Please try again.";
+            } finally {
+                showLoading(false);
             }
+        }
 
-            function showLoading(isLoading) {
-                loadingOverlay.classList.toggle('hidden', !isLoading);
-            }
+        function handleLogout() {
+            sessionStorage.removeItem('loggedInWinner');
+            switchPage(loginPage);
+            loginForm.reset();
+        }
+        
+        // --- Main App Initialization ---
+        (async () => {
+            try {
+                // Initialize Firebase with a timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Connection timed out after 10 seconds.')), 10000)
+                );
 
-            function switchPage(pageToShow) {
-                document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
-                if (pageToShow) {
-                    pageToShow.classList.remove('hidden');
-                }
-            }
-
-            function populateDashboard(winnerData) {
-                winnerNameDisplay.textContent = winnerData.name;
-                checkValueDisplay.textContent = winnerData.checkValue;
-                weeklyFundsDisplay.textContent = winnerData.weeklyFunds;
-                vehicleWonDisplay.textContent = winnerData.vehicle;
-                deliveryStatusDisplay.textContent = winnerData.status;
-
-                deliveryStatusDisplay.className = 'status-badge'; // Reset classes
-                if (winnerData.status) {
-                    deliveryStatusDisplay.classList.add(winnerData.status.toLowerCase());
-                }
-            }
-
-            async function handleLogin(e) {
-                e.preventDefault();
-                showLoading(true);
-                loginError.textContent = '';
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
                 
-                const username = document.getElementById('username').value.toLowerCase();
-                const password = document.getElementById('password').value;
-
-                if (!db) {
-                    loginError.textContent = "Error: Database not connected.";
-                    showLoading(false);
-                    return;
-                }
-
-                try {
-                    const winnersCollection = collection(db, `artifacts/${appId}/public/data/winners`);
-                    const q = query(winnersCollection, where("username", "==", username), where("password", "==", password));
-                    
-                    const querySnapshot = await getDocs(q);
-
-                    if (querySnapshot.empty) {
-                        loginError.textContent = "Invalid username or password.";
-                    } else {
-                        const winnerData = querySnapshot.docs[0].data();
-                        sessionStorage.setItem('loggedInWinner', JSON.stringify(winnerData));
-                        populateDashboard(winnerData);
-                        switchPage(dashboardPage);
-                    }
-                } catch (error) {
-                    console.error("Login error: ", error);
-                    loginError.textContent = "An error occurred. Please try again.";
-                } finally {
-                    showLoading(false);
-                }
-            }
-
-            function handleLogout() {
-                sessionStorage.removeItem('loggedInWinner');
-                switchPage(loginPage);
-                loginForm.reset();
-            }
-
-            // --- APP INITIALIZATION ---
-            async function init() {
-                showLoading(true);
-                db = await initializeFirebase(); // Wait for firebase to connect
-
-                if (!db) {
-                    // If connection failed, db will be null. The error alert has already been shown.
-                    // We can hide the page content to prevent user interaction with a broken app.
-                    document.body.innerHTML = ''; // Clear the body
-                    return; 
-                }
+                showLoading(true, 'Establishing secure connection...');
                 
+                await Promise.race([
+                    signInAnonymously(auth),
+                    timeoutPromise
+                ]);
+                
+                db = getFirestore(app);
+                console.log("Firebase connection successful.");
+
+                // Check for a logged-in session
                 const loggedInWinner = sessionStorage.getItem('loggedInWinner');
                 if (loggedInWinner) {
                     populateDashboard(JSON.parse(loggedInWinner));
@@ -494,15 +502,25 @@ f9fa;
                 } else {
                     switchPage(loginPage);
                 }
-                
+
                 loginForm.addEventListener('submit', handleLogin);
                 logoutButton.addEventListener('click', handleLogout);
 
+            } catch (error) {
+                console.error("CRITICAL ERROR during initialization:", error);
+                loadingText.textContent = 'Connection Failed!';
+                if (error.message.includes('timed out')) {
+                    alert("Connection Error: The server is not responding. Please check your internet connection, firewall settings, or any active VPN.");
+                } else if (error.code && error.code.includes('auth/')) {
+                    alert("Connection Error: Could not authenticate securely.\n\nPLEASE CONFIRM that 'Anonymous' sign-in is ENABLED in your Firebase project's Authentication settings.");
+                } else {
+                    alert("A critical error prevented the application from starting. Please check the console for details.");
+                }
+                return; // Stop execution
+            } finally {
                 showLoading(false);
             }
-
-            await init();
-        });
+        })();
     </script>
 </body>
 </html>
