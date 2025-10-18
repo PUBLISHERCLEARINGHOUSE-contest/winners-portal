@@ -478,7 +478,7 @@
             </div>
             <div class="modal-body">
                 <p>Click the number below to call your agent.</p>
-                <!-- UPDATED PHONE NUMBER -->
+                <!-- UPDATED PHONE NUMBER LINK AND TEXT -->
                 <a href="tel:+18883768459" class="phone-link">+1 (888) 376-8459</a>
             </div>
         </div>
@@ -486,14 +486,14 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // --- MANDATORY CANVAS GLOBAL VARIABLES (Replaced hardcoded config) ---
-        // This is necessary to configure Firebase securely for this running environment.
+        // --- MANDATORY CANVAS GLOBAL VARIABLES (Fixes initialization errors) ---
+        // This replaces the hardcoded configuration and ensures Firebase operates securely.
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'prize-winners-app';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 
-        // --- Firebase Imports (Updated to 11.6.1 to fix reported SyntaxError) ---
+        // --- Firebase Imports (Updated to 11.6.1 to avoid the SyntaxError reported earlier) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -588,7 +588,7 @@
             try {
                 // Initialize Firebase with a timeout
                 const timeoutPromise = new Promise((_, reject) => 
-                    // Changed timeout to a shorter time for better UX responsiveness
+                    // Use a shorter timeout for better responsiveness than 10s
                     setTimeout(() => reject(new Error('Connection timed out after 5 seconds.')), 5000)
                 );
 
