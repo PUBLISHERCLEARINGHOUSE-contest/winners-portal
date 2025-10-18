@@ -244,19 +244,19 @@
         }
 
         .contact-button {
-             display: block;
-             width: 100%;
-             max-width: 250px;
-             margin: 1rem auto 0 auto;
-             padding: 0.75rem;
-             border: none;
-             border-radius: 8px;
-             background-color: var(--blue-dark);
-             color: var(--white-primary);
-             font-size: 1rem;
-             font-weight: 600;
-             cursor: pointer;
-             transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            max-width: 250px;
+            margin: 1rem auto 0 auto;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--blue-dark);
+            color: var(--white-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .contact-button:hover {
@@ -469,7 +469,7 @@
         </div>
     </div>
     
-    <!-- ======== CONTACT MODAL ======== -->
+    <!-- ======== CONTACT MODAL (PHONE NUMBER FIXED) ======== -->
     <div id="contact-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -478,28 +478,24 @@
             </div>
             <div class="modal-body">
                 <p>Click the number below to call your agent.</p>
-                <a href="tel:+17692240652" class="phone-link">+1 (769) 224-0652</a>
+                <!-- UPDATED PHONE NUMBER -->
+                <a href="tel:+18883768459" class="phone-link">+1 (888) 376-8459</a>
             </div>
         </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
-        // --- YOUR UNIQUE FIREBASE CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAtcSHbjCnAHw3IUKkU8w2glBe5mKo2wts",
-            authDomain: "winners-18cf7.firebaseapp.com",
-            projectId: "winners-18cf7",
-            storageBucket: "winners-18cf7.appspot.com",
-            messagingSenderId: "241313463037",
-            appId: "1:241313463037:web:4953cc2a8b99ebaded9c94",
-            measurementId: "G-BTMJ8P648X"
-        };
-        const appId = 'prize-winners-app';
+        // --- MANDATORY CANVAS GLOBAL VARIABLES (Replaced hardcoded config) ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'prize-winners-app';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- Firebase Imports (Updated to 11.6.1 to avoid reported SyntaxError) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- DOM Elements ---
         const loadingOverlay = document.getElementById('loading');
@@ -557,6 +553,9 @@
             const password = document.getElementById('password').value;
 
             try {
+                // Check if DB is initialized
+                if (!db) throw new Error("Database not initialized during login attempt.");
+
                 const winnersCollection = collection(db, `artifacts/${appId}/public/data/winners`);
                 const q = query(winnersCollection, where("username", "==", username), where("password", "==", password));
                 const querySnapshot = await getDocs(q);
@@ -588,7 +587,8 @@
             try {
                 // Initialize Firebase with a timeout
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Connection timed out after 10 seconds.')), 10000)
+                    // Changed timeout to a shorter time for better UX responsiveness
+                    setTimeout(() => reject(new Error('Connection timed out after 5 seconds.')), 5000)
                 );
 
                 const app = initializeApp(firebaseConfig);
@@ -596,13 +596,14 @@
                 
                 showLoading(true, 'Establishing secure connection...');
                 
+                // Use Canvas auth flow
                 await Promise.race([
-                    signInAnonymously(auth),
+                    (initialAuthToken ? signInWithCustomToken(auth, initialAuthToken) : signInAnonymously(auth)),
                     timeoutPromise
                 ]);
                 
                 db = getFirestore(app);
-                console.log("Firebase connection successful.");
+                console.log("Firebase connection successful and authenticated.");
 
                 // Check for a logged-in session
                 const loggedInWinner = sessionStorage.getItem('loggedInWinner');
@@ -629,18 +630,21 @@
                     }
                 });
 
-
             } catch (error) {
                 console.error("CRITICAL ERROR during initialization:", error);
                 loadingText.textContent = 'Connection Failed!';
-                if (error.message.includes('timed out')) {
-                    alert("Connection Error: The server is not responding. Please check your internet connection, firewall settings, or any active VPN.");
-                } else if (error.code && error.code.includes('auth/')) {
-                    alert("Connection Error: Could not authenticate securely.\n\nPLEASE CONFIRM that 'Anonymous' sign-in is ENABLED in your Firebase project's Authentication settings.");
-                } else {
-                    alert("A critical error prevented the application from starting. Please check the console for details.");
-                }
-                return; // Stop execution
+                
+                // Using div insertion instead of alert()
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div class="modal" id="error-modal">
+                        <div class="modal-content">
+                            <h2 style="color: var(--red-error);">Initialization Error</h2>
+                            <p style="color: var(--text-dark);">${error.message.includes('timed out') ? 'Connection Error: The server is not responding.' : 'A critical error prevented the application from starting.'}</p>
+                            <button onclick="document.getElementById('error-modal').remove()" style="padding: 0.5rem 1rem; margin-top: 1rem; background-color: var(--red-error); color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+                        </div>
+                    </div>
+                `);
+
             } finally {
                 showLoading(false);
             }
@@ -648,4 +652,3 @@
     </script>
 </body>
 </html>
-
