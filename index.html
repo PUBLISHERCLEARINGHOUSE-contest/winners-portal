@@ -487,12 +487,13 @@
     <!-- Firebase SDK -->
     <script type="module">
         // --- MANDATORY CANVAS GLOBAL VARIABLES (Replaced hardcoded config) ---
+        // This is necessary to configure Firebase securely for this running environment.
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'prize-winners-app';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 
-        // --- Firebase Imports (Updated to 11.6.1 to avoid reported SyntaxError) ---
+        // --- Firebase Imports (Updated to 11.6.1 to fix reported SyntaxError) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -596,7 +597,7 @@
                 
                 showLoading(true, 'Establishing secure connection...');
                 
-                // Use Canvas auth flow
+                // Use Canvas auth flow: sign in with custom token or anonymously if token is unavailable.
                 await Promise.race([
                     (initialAuthToken ? signInWithCustomToken(auth, initialAuthToken) : signInAnonymously(auth)),
                     timeoutPromise
